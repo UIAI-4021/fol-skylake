@@ -121,8 +121,13 @@ class App(tkinter.Tk):
         # Placeholder: Assuming each line in the text contains a single location name
         # TODO 3: extract key features from user's description of destinations
         ################################################################################################
-
-        return [line.strip() for line in text.split('\n') if line.strip()]
+        values = text.split(" ")
+        result = []
+        for word in values:
+            for key, value in unique_features.items():
+                if word in value:
+                    result.append((word, key))
+        return result
 
     def start(self):
         self.mainloop()
