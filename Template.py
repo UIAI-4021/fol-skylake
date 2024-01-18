@@ -121,13 +121,17 @@ class App(tkinter.Tk):
     def extract_locations(self, text):
         """Extract locations from text. A placeholder for more complex logic."""
         # Placeholder: Assuming each line in the text contains a single location name
-        values = text.lower()
-        values = values.split(" ")
+        words = text.lower()
+        words = words.split(" ")
+        new_sentence = ""
+        for word in words:
+            new_sentence += f" {word}\n{word}"
+        words += new_sentence.split('\n')[1:-1]
         result = []
-        for word in values:
+        for words in words:
             for key, value in unique_features.items():
-                if word in value:
-                    result.append((word, key.lower()))
+                if words in value:
+                    result.append((words, key.lower()))      
         return result
 
     def start(self):
