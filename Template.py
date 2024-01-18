@@ -1,8 +1,10 @@
+from collections import OrderedDict
 import sys
 import tkinter
 import tkinter.messagebox
 from tkintermapview import TkinterMapView
 from pyswip import Prolog
+import pandas as pd
 
 
 class App(tkinter.Tk):
@@ -125,23 +127,44 @@ class App(tkinter.Tk):
     def start(self):
         self.mainloop()
 
-# TODO 1: read destinations' descriptions from Destinations.csv and add them to the prolog knowledge base
-################################################################################################
-# STEP1: Define the knowledge base of illnesses and their symptoms
+df = pd.read_csv('github-classroom/UIAI-4021/fol-skylake/Destinations.csv')
 
 prolog = Prolog()
 
-prolog.retractall("destination(_, _, _, _, _, _, _, _, _, _, _, _, _)")
-prolog.assertz("destination('Tokyo', japan, 'East Asia', temperate, high, cultural, solo, long, asian, modern, mountains, luxury, japanese)")
-prolog.assertz("destination('Ottawa', canada, 'North America', cold, medium, adventure, family_friendly, medium, european, modern, forests, mid_range, english)")
-prolog.assertz("destination('Mexico City', mexico, 'North America', temperate, low, cultural, senior, short, latin_american, ancient, mountains, budget, spanish)")
-prolog.assertz("destination('Rome', italy, 'Southern Europe', temperate, high, cultural, solo, medium, european, ancient, beaches, luxury, italian)")
-prolog.assertz("destination('Brasilia', brazil, 'South America', tropical, low, adventure, family_friendly, long, latin_american, modern, beaches, budget, portuguese)")
+prolog.retractall("language(_,_)")
+prolog.retractall("accommodation(_,_)")
+prolog.retractall("natural_wonder(_,_)") 
+prolog.retractall("history(_,_)")
+prolog.retractall("duration(_,_)")
+prolog.retractall("cuisine(_,_)")
+prolog.retractall("demographics(_,_)")
+prolog.retractall("activity(_,_)")
+prolog.retractall("budget(_,_)")
+prolog.retractall("climate(_,_)")
+prolog.retractall("region(_,_)")
+prolog.retractall("country(_,_)")
+prolog.retractall("my_destination(_)")
 
+for row in df.iterrows():
+    prolog.assertz("my_destination(\"{}\")".format(row[1]['Destinations']))
+    prolog.assertz("country(\"{}\",\"{}\")".format(row[1]['country'], row[1]['Destinations']))
+    prolog.assertz("region(\"{}\",\"{}\")".format(row[1]['region'], row[1]['Destinations']))
+    prolog.assertz("climate(\"{}\",\"{}\")".format(row[1]['Climate'], row[1]['Destinations']))
+    prolog.assertz("budget(\"{}\",\"{}\")".format(row[1]['Budget'], row[1]['Destinations']))
+    prolog.assertz("activity(\"{}\",\"{}\")".format(row[1]['Activity'], row[1]['Destinations']))
+    prolog.assertz("demographics(\"{}\",\"{}\")".format(row[1]['Demographics'], row[1]['Destinations']))
+    prolog.assertz("duration(\"{}\",\"{}\")".format(row[1]['Duration'], row[1]['Destinations']))
+    prolog.assertz("cuisine(\"{}\",\"{}\")".format(row[1]['Cuisine'], row[1]['Destinations']))
+    prolog.assertz("history(\"{}\",\"{}\")".format(row[1]['History'], row[1]['Destinations']))
+    prolog.assertz("natural_wonder(\"{}\",\"{}\")".format(row[1]['Natural Wonder'], row[1]['Destinations']))
+    prolog.assertz("accommodation(\"{}\",\"{}\")".format(row[1]['Accommodation'], row[1]['Destinations']))
+    prolog.assertz("language(\"{}\",\"{}\")".format(row[1]['Language'], row[1]['Destinations']))
 
-
-# TODO 2: extract unique features from the Destinations.csv and save them in a dictionary
-################################################################################################
+unique_features = OrderedDict()
+for column in df.columns:
+    unique_values = df[column].unique()
+    unique_values = set(unique_values)
+    unique_features[column] = list(unique_values)
 
 
 if __name__ == "__main__":
