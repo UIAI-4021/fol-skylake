@@ -78,12 +78,12 @@ class App(tkinter.Tk):
     def process_text(self):
         """Extract locations from the text area and mark them on the map."""
         text = self.text_area.get("1.0", "end-1c")  # Get text from text area
-        locations = self.extract_locations(text)  # Extract locations (you may use a more complex method here)
+        unique_features = self.extract_locations(text)  # Extract locations (you may use a more complex method here)
         query = ""
-        for element in locations:
+        for element in unique_features:
             x = element[0]
             y = element[1]
-            query += f"{y}(City, \"{x}\"), "
+            query += f"{y}(City, \'{x}\'), "
         print(query[:-2])
         results = list(prolog.query(query[:-2]))
         for result in results:
@@ -139,7 +139,8 @@ class App(tkinter.Tk):
 
 df = pd.read_csv('github-classroom/UIAI-4021/fol-skylake/Destinations.csv')
 df = df.apply(lambda x: x.str.lower())
-
+for column in df.columns:
+    df[column] = df[column].str.replace("'", "\\'")
 prolog = Prolog()
 
 prolog.retractall("region(_,_)")
@@ -157,19 +158,19 @@ prolog.retractall("country(_,_)")
 prolog.retractall("my_destination(_)")
 
 for row in df.iterrows():
-    prolog.assertz("my_destination(\"{}\")".format(row[1]['Destinations']))
-    prolog.assertz("country(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['country']))
-    prolog.assertz("region(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['region']))
-    prolog.assertz("climate(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Climate']))
-    prolog.assertz("budget(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Budget']))
-    prolog.assertz("activity(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Activity']))
-    prolog.assertz("demographics(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Demographics']))
-    prolog.assertz("duration(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Duration']))
-    prolog.assertz("cuisine(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Cuisine']))
-    prolog.assertz("history(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['History']))
-    prolog.assertz("natural_wonder(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Natural Wonder']))
-    prolog.assertz("accommodation(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Accommodation']))
-    prolog.assertz("language(\"{}\",\"{}\")".format(row[1]['Destinations'], row[1]['Language']))
+    prolog.assertz("my_destination(\'{}')".format(row[1]['Destinations']))
+    prolog.assertz("country(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['country']))
+    prolog.assertz("region(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['region']))
+    prolog.assertz("climate(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Climate']))
+    prolog.assertz("budget(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Budget']))
+    prolog.assertz("activity(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Activity']))
+    prolog.assertz("demographics(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Demographics']))
+    prolog.assertz("duration(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Duration']))
+    prolog.assertz("cuisine(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Cuisine']))
+    prolog.assertz("history(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['History']))
+    prolog.assertz("natural_wonder(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Natural Wonder']))
+    prolog.assertz("accommodation(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Accommodation']))
+    prolog.assertz("language(\'{}\',\'{}\')".format(row[1]['Destinations'], row[1]['Language']))
 
 unique_features = OrderedDict()
 for column in df.columns:
