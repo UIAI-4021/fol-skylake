@@ -1,10 +1,12 @@
 from collections import OrderedDict
+import itertools
 import sys
 import tkinter
 import tkinter.messagebox
 from tkintermapview import TkinterMapView
 from pyswip import Prolog
 import pandas as pd
+from tkinter import messagebox
 
 
 class App(tkinter.Tk):
@@ -66,13 +68,37 @@ class App(tkinter.Tk):
 
     def check_connections(self, results):
         print('result2 ', results)
+        results2 = []
         locations = []
         for result in results:
-            city  = result["City"]
-            locations.append(city)
-            # TODO 5: create the knowledgebase of the city and its connected destinations using Adjacency_matrix.csv
+            results2.append(result["City"])
+            neighboring_cities = list(prolog.query("tour(\'{}\' ,Y ,Z)".format(result["City"])))
+            for cities in neighboring_cities:
+                if result["City"] != cities['Z']:
+                    locations.append((result["City"], cities['Y'], cities['Z']))
+        one_match_locations = []
+        print(results2)
+        for location in locations:
+            if location[2] in results2:
+                one_match_locations.append(location)
+        print(one_match_locations)
 
+        best_tour = []
+        for i in range(len(one_match_locations)):
+            best_tour.append("")
 
+        for i in range(len(one_match_locations)):
+            string = ""
+            for j in range(i , len(one_match_locations)):
+                if string == "":
+                    if one_match_locations[i][2] == one_match_locations[j][0]:
+                        best_tour[i] += one_match_locations[i][0] + " " + one_match_locations[i][1] + " " + one_match_locations[i][2] + " " + one_match_locations[j][1] + " " + one_match_locations[j][2]
+                        string = one_match_locations[j][2]
+                else:
+                    if string == one_match_locations[j][0]:
+                        best_tour[i] += one_match_locations[j][1] + " " + one_match_locations[j][2]
+                        string = one_match_locations[j][2]
+        print(best_tour)
         return locations
 
     def process_text(self):
@@ -85,15 +111,20 @@ class App(tkinter.Tk):
             y = element[1]
             query += f"{y}(City, \'{x}\'), "
         print(query[:-2])
+        if query == '':
+            messagebox.showwarning("Warning", "The desired location was not found")
+            return
         results = list(prolog.query(query[:-2]))
         for result in results:
             print(result["City"])
         locations = self.check_connections(results)
-        # TODO 6: if the number of destinations is less than 6 mark and connect them 
-        ################################################################################################
-        print(locations)
-        locations = ['mexico_city','rome' ,'brasilia']
-        self.mark_locations(locations)
+        if len(locations) == 0:
+            messagebox.showwarning("Warning", "The desired location was not found")
+        elif len(locations) > 5:
+            messagebox.showwarning("Warning", "Enter more detailed information")
+        else:
+            print(locations)
+            self.mark_locations(locations)
 
     def mark_locations(self, locations):
         """Mark extracted locations on the map."""
@@ -178,6 +209,22 @@ for column in df.columns:
     unique_values = set(unique_values)
     unique_features[column] = list(unique_values)
 
+df = pd.read_csv('github-classroom/UIAI-4021/fol-skylake/Adjacency_matrix.csv')
+prolog.retractall("directly_connected(_,_)")
+prolog.retractall("tour(_,_,_)")
+
+for i in range(len(df)):
+    for j in range(1, len(df)):
+        if df.iloc[i, j] > 0:
+            city1, city2 = df.iloc[i, 0], df.iloc[j - 1, 0]
+            city1 = city1.replace("'", "\\'")
+            city2 = city2.replace("'", "\\'")
+            prolog.assertz("directly_connected(\'{}\',\'{}\')".format(city1.lower(), city2.lower()))
+
+# prolog.assertz("connected(X, Y) :- directly_connected(X, Y)")
+# prolog.assertz("connected(X, Y) :- directly_connected(Y, X)")
+prolog.assertz("tour(X, Y, Z) :- directly_connected(X, Y), directly_connected(Y, Z)")
+            
 
 if __name__ == "__main__":
     app = App()
