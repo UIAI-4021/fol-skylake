@@ -83,23 +83,44 @@ class App(tkinter.Tk):
                 one_match_locations.append(location)
         print(one_match_locations)
 
-        best_tour = []
+        tours = []
         for i in range(len(one_match_locations)):
-            best_tour.append("")
+            tours.append([])
 
         for i in range(len(one_match_locations)):
             string = ""
-            for j in range(i , len(one_match_locations)):
+            temp_result = results2.copy()
+            temp_result.remove(one_match_locations[i][0])
+            temp_result.remove(one_match_locations[i][2])
+            j = 0
+            while j < len(one_match_locations):
                 if string == "":
-                    if one_match_locations[i][2] == one_match_locations[j][0]:
-                        best_tour[i] += one_match_locations[i][0] + " " + one_match_locations[i][1] + " " + one_match_locations[i][2] + " " + one_match_locations[j][1] + " " + one_match_locations[j][2]
+                    if one_match_locations[i][2] == one_match_locations[j][0] and one_match_locations[j][2] in temp_result:
+                        tours[i].append(one_match_locations[i][0])
+                        tours[i].append(one_match_locations[i][1])
+                        tours[i].append(one_match_locations[i][2])
+                        tours[i].append(one_match_locations[j][1])
+                        tours[i].append(one_match_locations[j][2])
                         string = one_match_locations[j][2]
+                        temp_result.remove(one_match_locations[j][2])
+                        j = 0
+                        continue
                 else:
-                    if string == one_match_locations[j][0]:
-                        best_tour[i] += one_match_locations[j][1] + " " + one_match_locations[j][2]
+                    if string == one_match_locations[j][0] and one_match_locations[j][2] in temp_result:
+                        tours[i].append(one_match_locations[j][1])
+                        tours[i].append(one_match_locations[j][2])
                         string = one_match_locations[j][2]
+                        temp_result.remove(one_match_locations[j][2])
+                        j = 0
+                        continue
+                j = j + 1
+        print(tours)
+        best_tour = tours[0]
+        for tour in tours:
+            if len(best_tour) < len(tour):
+                best_tour = tour
         print(best_tour)
-        return locations
+        return best_tour
 
     def process_text(self):
         """Extract locations from the text area and mark them on the map."""
@@ -159,10 +180,17 @@ class App(tkinter.Tk):
             new_sentence += f" {word}\n{word}"
         words += new_sentence.split('\n')[1:-1]
         result = []
+        keys = []
         for words in words:
             for key, value in unique_features.items():
-                if words in value:
-                    result.append((words, key.lower()))      
+                if words in value and key.lower() not in keys:
+                    if key.lower() == 'natural wonder':
+                        result.append((words, 'natural_wonder'))
+                        keys.append('natural_wonder')
+                    else:
+                        result.append((words, key.lower()))      
+                        keys.append(key.lower())
+                        
         return result
 
     def start(self):
